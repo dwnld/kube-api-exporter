@@ -31,8 +31,47 @@ class KubernetesAPIExporter(object):
       for gauge in gauge_cache.values():
         yield gauge
 
+    self.collect_cronjob_rollups()
+
+  def timestamp_from_job_name(self, job_name):
+    m = re.search(r'^(.+)-\d{10}', job_name)
+    if m:
+      return int(m.group(1))
+
+  def collect_cronjob_rollups(self):
+    gauge_cache = {}
+    latest_job_dict = {}
+    for thing in pykube.Job.objects(self.api).all():
+      value = thing.obj
+      if not isinstance(value, dict) or 'metadata' not in value or 'name' not in value['metadata']:
+        continue
+
+      # job name is in the form foobar-149803500
+      timestamp = self.timestamp_from_job_name(value['metadata']['name'])
+      if not timestamp:
+        continue
+
+      rollup_name = '{}-rollup'.format(timestamp)
+      if rollup_name not in latest_job_dict or latest_job_dict[rollup_name][0] < timestamp:
+        latest_job_dict[rollup_name] = (timestamp, thing)
+
+    for rollup_name, pair in latest_job_dict.values():
+      thing = pair[1]
+      thing.obj['metadata']['name'] = rollup_name
+
+      labels = labels_for(thing.obj)
+      self.record_ts_for_thing(thing.obj, labels, ["k8s", tag], gauge_cache)
+
+    for gauge in gauge_cache.values():
+      yield gauge
+
+
+
   def pad_status_with_zero(self, value, labels, path):
     if path == ['k8s', 'job'] and 'status' in value and ('failed' in value['status'] or 'succeeded' in value['status']):
+      if 'active' not in value['status']:
+        value['status']['active'] = 0
+
       if 'failed' not in value['status']:
         value['status']['failed'] = 0
 
