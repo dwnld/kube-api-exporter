@@ -39,7 +39,7 @@ class KubernetesAPIExporter(object):
   def parse_job_name(self, job_name):
     m = re.search(r'^(.+)-(\d{10})', job_name)
     if m:
-      return (rollup_name, int(m.group(2)))
+      return (m.group(1), int(m.group(2)))
     else:
       return (None, None)
 
@@ -59,7 +59,7 @@ class KubernetesAPIExporter(object):
       if rollup_name not in latest_job_dict or latest_job_dict[rollup_name][0] < timestamp:
         latest_job_dict[rollup_name] = (timestamp, thing)
 
-    for rollup_name, pair in latest_job_dict.values():
+    for rollup_name, pair in latest_job_dict.items():
       thing = pair[1]
       thing.obj['metadata']['name'] = rollup_name
 
