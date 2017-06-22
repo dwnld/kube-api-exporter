@@ -70,7 +70,7 @@ class KubernetesAPIExporter(object):
       yield gauge
 
   def pad_status_with_zero(self, value, labels, path):
-    if path == ['k8s', 'job'] and 'status' in value and ('failed' in value['status'] or 'succeeded' in value['status']):
+    if path[0] == 'k8s' and path[1] in ['job', 'jobrollup'] and 'status' in value and ('failed' in value['status'] or 'succeeded' in value['status']):
       if 'active' not in value['status']:
         value['status']['active'] = 0
 
