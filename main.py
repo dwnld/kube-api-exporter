@@ -22,7 +22,7 @@ class KubernetesAPIExporter(object):
     self.api = api
 
   def collect(self):
-    for gauge in self.collect_cronjob_rollups()
+    for gauge in self.collect_cronjob_rollups():
       yield gauge
 
     for tag, kind in self.KINDS.items():
