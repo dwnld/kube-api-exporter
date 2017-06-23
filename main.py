@@ -51,6 +51,10 @@ class KubernetesAPIExporter(object):
       if not isinstance(value, dict) or 'metadata' not in value or 'name' not in value['metadata']:
         continue
 
+      if 'status' in value and 'active' in value['status'] and value['status']['active'] > 0:
+        # skip active (incomplete) jobs
+        continue
+
       # job name is in the form foobar-149803500
       rollup_name, timestamp = self.parse_job_name(value['metadata']['name'])
       if not timestamp:
