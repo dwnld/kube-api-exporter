@@ -13,7 +13,7 @@ class KubernetesAPIExporter(object):
   KINDS = {
     "deployment": pykube.Deployment,
     "pod": pykube.Pod,
-    "job": pykube.Job,
+    # "job": pykube.Job,
     "rc": pykube.ReplicationController,
     "ds": pykube.DaemonSet,
   }
